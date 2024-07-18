@@ -15,7 +15,7 @@ def on_click(x, y, button, pressed):
         clics.append((x, y))
         print(f"Clic en: ({x}, {y})")
         
-        # Detener el listener después de dos clics
+        # Calcular y actualizar la distancia después de cada dos clics
         if len(clics) == 2:
             print(f"Posición del primer clic: {clics[0]}")
             print(f"Posición del segundo clic: {clics[1]}")
@@ -24,38 +24,43 @@ def on_click(x, y, button, pressed):
             distancia = calcular_distancia(clics[0], clics[1])
             print(f"La distancia entre los puntos es: {distancia} píxeles")
             
-            # Muestra la distancia en la ventana de Tkinter
-            mostrar_distancia(distancia)
+            # Actualiza la etiqueta de la ventana con la nueva distancia
+            etiqueta.config(text=f"Distancia: {distancia:.2f} píxeles")
             
-            # Termina el listener
-            return False
+            # Restablece la lista de clics
+            clics.clear()
 
-def mostrar_distancia(distancia):
-    
+def mostrar_distancia():
+    """
+    Crea una ventana sin bordes para mostrar la distancia.
+    """
     ventana = tk.Tk()
     ventana.title("Distancia")
-    ventana.geometry("200x100")
+    
+    # Establece la ventana sin bordes
+    ventana.overrideredirect(True)
     
     # Hace que la ventana esté siempre encima de otras ventanas
     ventana.attributes("-topmost", True)
     
-    etiqueta = tk.Label(ventana, text=f"Distancia: {distancia:.2f} píxeles", font=("Arial", 14))
-    etiqueta.pack(expand=True)
+    # Hace que la ventana sea parcialmente transparente
+    ventana.attributes("-alpha", 0.7)
+
+    # Ajusta el tamaño y la posición de la ventana
+    ventana.geometry("300x90+100+100")
     
-    # Botón para cerrar la ventana
-    boton_cerrar = tk.Button(ventana, text="Cerrar", command=ventana.destroy)
-    boton_cerrar.pack()
+    global etiqueta
+    etiqueta = tk.Label(ventana, text="Distancia: -- píxeles", font=("Arial", 14), bg="lightgray", fg="black")
+    etiqueta.pack(expand=True, fill="both")
 
     ventana.mainloop()
 
 # Configurar el listener para el ratón
 with mouse.Listener(on_click=on_click) as listener:
-    listener.join()
-
+    # Ejecutar la ventana de distancia en un hilo separado
+    import threading
+    hilo_ventana = threading.Thread(target=mostrar_distancia)
+    hilo_ventana.start()
     
-# Calcula la distancia
-distancia = calcular_distancia(clics[0], clics[1])
-print(f"La distancia entre los puntos es: {distancia} píxeles")
-
-
-
+    # Comenzar a escuchar los clics
+    listener.join()
