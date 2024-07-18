@@ -31,9 +31,7 @@ def on_click(x, y, button, pressed):
             return False
 
 def mostrar_distancia(distancia):
-    """
-    Muestra la distancia en una ventana flotante.
-    """
+    
     ventana = tk.Tk()
     ventana.title("Distancia")
     ventana.geometry("200x100")
