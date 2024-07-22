@@ -1,6 +1,7 @@
 import tkinter as tk
 import math
 from pynput import mouse
+import numpy as np
 
 # Lista para almacenar clics
 clics = []
@@ -56,67 +57,77 @@ K = 0.0039
 def calcular():
     global V
     try:
-        # Obtener los valores de entrada
-        alpha_degrees = int(entry_alpha.get())
-        beta_degrees = int(entry_beta.get())
-        velocidad_viento = int(entry_velocidad_viento.get())
-
-        a_ju = velocidad_viento
-        a_v = a_ju * K
-        # Convertir ángulos de grados a radianes
-        alpha = math.radians(alpha_degrees)
-        beta = math.radians(beta_degrees)
-
-        # Usar la distancia calculada previamente
-        d = distancia_calculada
-
-        # Crear un diccionario para almacenar las diferencias y los valores de V_barra
-        diferencias = {}
-
-        # Inicializar V_barra
-        V_barra = 0.00
+        # jugador
+        # entry_alpha.get()
         
-        # Valor predeterminado similar a 0.5000 en Excel
-        valor_predeterminado = 0.5000
+        # viento
+        # entry_beta.get()
         
-        # Iterar sobre el rango de V_barra con pasos de 0.05
-        while V_barra <= 40.00:
-            # Calcular t2
-            t2 = (V_barra * math.sin(alpha)) / (a_v * math.sin(beta) + g)
-            t2 = round(t2, 2)  # Redondear t2 a dos decimales
-
-            # Calcular t1 usando la fórmula
-            t1_numerator = -2 * V_barra * math.cos(alpha)
-            t1_sqrt_part = math.sqrt((2 * V_barra * math.cos(alpha))**2 - 4 * (2 * a_v * math.cos(beta)) * (-d))
-            t1_denominator = 4 * a_v * math.cos(beta)
-            t1 = (t1_numerator + t1_sqrt_part) / t1_denominator
-            t1 = round(t1, 2)  # Redondear t1 a dos decimales
-
-            # Calcular la diferencia entre t1 y t2
-            diferencia = t1 - t2
-
-            # Aplicar la lógica condicional similar a Excel
-            if V_barra == 0:  # Condición similar a T10 == 0
-                diferencia = valor_predeterminado
-            else:
-                diferencia = abs(diferencia)  # Diferencia absoluta
-
-            # Mostrar resultados de cada iteración
-            print(f"V_barra: {V_barra:.2f}, t1: {t1:.2f}, t2: {t2:.2f}, Diferencia: {diferencia:.2f}")
-
-            # Guardar la diferencia en el diccionario
-            diferencias[V_barra] = diferencia
-
-            # Incrementar V_barra en 0.05
-            V_barra += 0.05
-
-        # Encontrar el valor de V_barra con la menor diferencia
-        V_barra_menor_diferencia = min(diferencias, key=diferencias.get)
-        menor_diferencia = diferencias[V_barra_menor_diferencia]
-
-        # Mostrar el resultado
-        print(f"V_barra con menor diferencia: {V_barra_menor_diferencia:.2f} (Diferencia: {menor_diferencia:.2f})")
-        result_text.set(round(V_barra_menor_diferencia,2))
+        
+        # distancia_calculada
+        
+        gravedad = 0.43
+        
+        # entry_velocidad_viento.get()
+        factorK = 0.0039
+        vientoCalculo = factorK * 22
+        
+        # entry_beta.get()
+        vientoGradosRad = math.radians(226)
+       
+        # entry_alpha.get()
+        jugadorGradosRad = math.radians(51)
+        
+        vBarra = 0
+        
+        tabla = []
+        
+        # t2t1                      5000
+        # vBarra                    0 0.5 1 ... 40
+        # t2                        0
+        # t2rad                     0
+        # 2*v*cos(jugadorGradosRad) 0
+        # raiz                      0
+        # t1                        0
+        # t1rad                     0
+        
+        for i in range(81):
+            
+            t2 = (-vBarra * math.sin(jugadorGradosRad))/ vientoCalculo * math.sin(vientoGradosRad) - gravedad
+            t2Red = +round(t2,2)
+            
+            vcos = round(2 * vBarra * math.cos(jugadorGradosRad),2)
+            
+            raiz = round(vcos*vcos , 2)  - (4 * (2 * vientoCalculo * math.cos(vientoGradosRad)) * 490)  
+            if(raiz < 0):
+                raiz = 0
+            
+            t1 = (-vcos + math.sqrt(raiz)) / 2 * ( 2 * vientoCalculo * math.cos(vientoGradosRad)) 
+            t1Red = +round(t1,2)
+            
+            t2t1 = 5000
+            if(raiz != 0):
+                t2t1 = abs(t1Red - t2Red) 
+            
+            tabla.append([t2t1,vBarra,t2,t2Red,vcos,raiz,t1,t1Red])
+            
+            vBarra+=0.5
+            
+            defVarible = tabla[0][0];
+            
+        for i in range(80):
+            print(tabla[i][1], " ")
+            if(defVarible >= tabla[i][0]):
+                
+                defVarible = tabla[i][0]
+        
+       
+        t1Table = 0;
+        
+        print(defVarible)
+        
+        v = (-gravedad + vientoCalculo * math.sin(vientoGradosRad))         
+       
     except ValueError:
         result_text.set("Por favor, ingrese valores válidos.")
 
@@ -125,7 +136,7 @@ def mostrar_distancia():
     
     ventana = tk.Tk()
     ventana.title("Cálculos de Proyectiles")
-    ventana.geometry("300x350")
+    ventana.geometry("380x350")
 
     labels = ["Ángulo Disparo (grados)", "Ángulo Viento (grados)", "Velocidad de Viento"]
     entries = []
